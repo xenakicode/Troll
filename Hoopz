@@ -1,0 +1,2 @@
+local player = game.Players.LocalPlayer
+player:Kick("You have been banned. You can appeal this in our discord server.")
