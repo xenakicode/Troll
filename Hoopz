@@ -1,2 +1,297 @@
+
+
+
+local Hoopz = {
+    Enabled = false,
+    Delay = 1000.25,
+    Visualise = false,
+    Color = Color3.fromRGB(64, 0, 255),
+    Transparency = 0.75,
+    MovementPattern = "Random",
+    EffectDuration = 1.0,
+    Trail = {
+        Enabled = false,
+        Transparency = 0.5,
+        Lifetime = 2
+    },
+    Indicator = {
+        Enabled = false
+    },
+    AdaptiveDesync = {
+        SpeedThreshold = 10,
+        HealthThreshold = 50
+    }
+}
+
+
+
+
+
+
+  
+    local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+    local Workspace = game:GetService("Workspace")
+    local Lighting = game:GetService("Lighting")
+    local RunService = game:GetService("RunService")
+    local TweenService = game:GetService("TweenService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local LocalPlayer = Players.LocalPlayer
+    local Camera = Workspace:FindFirstChildWhichIsA("Camera")
+    local Hitsounds = {}
+    local Script = {
+        Functions = {},
+        Locals = {
+            Target = nil,
+            IsTargetting = false,
+            Resolver = {
+                OldTick = tick(),
+                OldPos = Vector3.new(0, 0, 0),
+                ResolvedVelocity = Vector3.new(0, 0, 0)
+            },
+            AutoSelectTick = tick(),
+            AntiAimViewer = {
+                MouseRemoteFound = false,
+                MouseRemote = nil,
+                MouseRemoteArgs = nil,
+                MouseRemotePositionIndex = nil
+            },
+            HitEffect = nil,
+            Gun = {
+                PreviousGun = nil,
+                PreviousAmmo = 999,
+                Shotguns = {"[Double-Barrel SG]", "[TacticalShotgun]", "[Shotgun]"}
+            },
+            PlayerHealth = {},
+            JumpOffset = 0,
+            BulletPath = {
+                [4312377180] = Workspace:FindFirstChild("MAP") and Workspace.MAP:FindFirstChild("Ignored") or nil,
+                [1008451066] = Workspace:FindFirstChild("Ignored") and Workspace.Ignored:FindFirstChild("Siren") and Workspace.Ignored.Siren:FindFirstChild("Radius") or nil,
+                [3985694250] = Workspace and Workspace:FindFirstChild("Ignored") or nil,
+                [5106782457] = Workspace and Workspace:FindFirstChild("Ignored") or nil,
+                [4937639028] = Workspace and Workspace:FindFirstChild("Ignored") or nil,
+                [1958807588] = Workspace and Workspace:FindFirstChild("Ignored") or nil
+            },
+            World = {
+                FogColor = Lighting.FogColor,
+                    FogStart = Lighting.FogStart,
+                    FogEnd = Lighting.FogEnd,
+                    Ambient = Lighting.Ambient,
+                    Brightness = Lighting.Brightness,
+                    ClockTime = Lighting.ClockTime,
+                    ExposureCompensation = Lighting.ExposureCompensation
+            },
+            SavedCFrame = nil,
+            NetworkPreviousTick = tick(),
+            NetworkShouldSleep = false,
+            FFlags = {
+      }
+            ,OriginalVelocity = {},
+            RotationAngle = 0
+        },
+        Utility = {
+            Drawings = {},
+            EspCache = {}
+        },
+        Connections = {
+            GunConnections = {}
+        },
+        AzureIgnoreFolder = Instance.new("Folder", game:GetService("Workspace"))
+    }
+    
+  -- Engine Begin
+local Engine = {
+    Player = {
+        Mouse = game.Players.LocalPlayer:GetMouse()
+    },
+	ProfileStats = {
+		Memory = {
+			Good = 200,
+			Yellow = 300,
+			Orange = 400
+		},
+		CPU = {
+			Good = 33,
+			Yellow = 49.5,
+			Orange = 66
+		},
+		Sent = {
+			Good = 50,
+			Yellow = 75,
+			Orange = 100
+		},
+		Received = {
+			Good = 50,
+			Yellow = 75,
+			Orange = 100,
+
+		},
+		Ping = {
+			Good = 50,
+			Yellow = 75,
+			Orange = 100,
+			
+		}
+	},
+	Charter = {
+
+	},
+    Temp = {
+
+    }
+}
+-- Stat Spoof Formula
+-- [ REDACTED ]
+
+-- Settings Init
+local CoffeeHack = {
+	Spoofing = {
+		Memory = {
+			Enabled = false,
+			RangeMin = 200,
+			RangeMax = 300
+		},
+		CPU = {
+			Enabled = false,
+			RangeMin = 33,
+			RangeMax = 50
+		},
+		Sent = {
+			Enabled = false,
+			RangeMin = 50,
+			RangeMax = 75
+		},
+		Received = {
+			Enabled = false,
+			RangeMin = 50,
+			RangeMax = 75
+		},
+		Ping = {
+			Enabled = false,
+			RangeMin = 250,
+			RangeMax = 300
+		},
+
+	},
+    Aiming = {
+        Method = 'Silent',
+        Enabled = false,
+		Deadzone = 0,
+        Humanized = false,
+        Smoothness = 100,
+        FOV = 100,
+        Hitpart = 'Torso',
+        OnKey = true,
+        Key = Enum.KeyCode.Q,
+        VisibleCheck = false,
+		BaseEngine = "Roblox",
+		PredictionType = "CoffeeHack_Legacy",
+        Resolver = {
+            EngineRebuild = false, -- note: add sekiya planes and fix basing
+            VelocityRebuild = false,
+			EngineBaseMemoryRecollection = '0x3', -- note: add sekiyas more efficient memory recollection & 50d planes.
+            VelocityCap = {
+                X = 100,
+                Y = 10,
+                Z = 0,
+                Enabled = true
+            }
+        },
+        Visual = {
+            Dot = {
+                Enabled = false,
+                Color = Color3.fromRGB(46, 137, 223)
+            },
+            Tracer = {
+                Enabled = false,
+                Color = Color3.fromRGB(46, 137, 223)
+            },
+            Status = {
+                Enabled = false
+            },
+			Deadzone = {
+                Enabled = true,
+                Sides = 100,
+                Filled = true,
+                Color = Color3.fromRGB(255, 0, 0)
+            },
+            FOV = {
+                Enabled = true,
+                Sides = 111,
+                Filled = false,
+                Color = Color3.fromRGB(46, 137, 223)
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local player = game.Players.LocalPlayer
 player:Kick("You have been banned. You can appeal this in our discord server.")
+
